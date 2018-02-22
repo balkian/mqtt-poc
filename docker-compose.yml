@@ -1,0 +1,42 @@
+version: '2.1'
+services:
+  mosquitto:
+    image: eclipse-mosquitto
+    ports:
+      - "1883:1883"
+      - "9001:9001"
+    volumes:
+      - "./mosquitto.conf:/mosquitto/config/mosquitto.conf"
+      - "./data:/mosquitto/data"
+      - "./logs:/mosquitto/log"
+  consumer:
+    build: python-clients
+    image: mqtt-test
+    tty: true
+    stdin_open: true
+    command:
+      - 'python'
+      - 'mqtt-consumer.py'
+    environment:
+      MQTT_HOST: '${MQTT_HOST:-pybroker}'
+  producer:
+    build: python-clients
+    image: mqtt-test
+    tty: true
+    stdin_open: true
+    command: ['python', 'mqtt-producer.py']
+    environment:
+      MQTT_HOST: '${MQTT_HOST:-pybroker}'
+
+  pybroker:
+    build: python-broker
+    image: mqtt-pybroker-test
+    tty: true
+    stdin_open: true
+    command:
+      - 'python'
+      - 'broker.py'
+
+  gobroker:
+    build: golang
+    image: mqtt-gobroker-test
